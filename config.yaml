@@ -1,0 +1,51 @@
+# config.yaml - parameters for data dirs and model hyperparameters
+
+# Directory paths
+
+data_dir: data/         # folder containing all input .tif files
+output_dir: output/      # folder to write predictions & plots
+
+# Dataset settings
+# If folder_mode is true, all .tif files in data_dir are used
+# Otherwise, list individual study areas (without extension)
+study_areas:
+  folder_mode: false      # read all .tif in data_dir, ignore explicit list
+  list:                   # used when folder_mode is false
+    - Adenstedt
+    - Barum
+    - Brueggen
+    - Kleinilde
+    - Kueingdorf
+    - Lamspringe
+    - Nette
+bands:                   # list of band names to extract from each .tif
+  - B03_DEM1_res_5m
+  - B04_Slope
+  - B05_Aspect_360
+  - B06_Aspect_180
+  - B07_PlanCurv
+  - B08_ProfileCurv
+  - B09_FlowLineCurv
+  - B10_DCI
+  - B11_DCI10
+  - B12_FA_fields
+  - B13_SL_fields
+  - B14_LS_factor_fields
+  - B15_TPI
+  - B16_WI
+  - B17_K_factor
+  - B18_R_factor
+  - B19_C_factor
+  - B20_MD
+  - B21_MD_vs_Aspect
+
+# Model parameters
+model:
+  type: cnn             # options: cnn, dnn, snn, rf
+  epochs: 50            # number of epochs (for NN models)
+  batch_size: 256       # batch size (for NN models)
+  threshold: 0.25       # threshold for classification metrics
+
+# Cross-validation
+cv_folds: 5             # number of folds for K-Fold CV
+
