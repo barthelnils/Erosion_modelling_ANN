@@ -1,0 +1,85 @@
+
+# Main modeling config 
+
+# Directory paths
+
+data_dir: data/
+output_dir: output/
+
+study_areas:
+  list:
+    - Adenstedt
+    - Barum
+    - Brueggen
+    - Kleinilde
+    - Kueingdorf
+    - Lamspringe
+    - Nette
+
+bands:
+  - B03_DEM1_res_5m
+  - B04_Slope
+  - B05_Aspect_360
+  - B06_Aspect_180
+  - B07_PlanCurv
+  - B08_ProfileCurv
+  - B09_FlowLineCurv
+  - B10_DCI
+  - B11_DCI10
+  - B12_FA_fields
+  - B13_SL_fields
+  - B14_LS_factor_fields
+  - B15_TPI
+  - B16_WI
+  - B17_K_factor
+  - B18_R_factor
+  - B19_C_factor
+  - B20_MD
+  - B21_MD_vs_Aspect
+
+
+# Validation 
+validation:
+  type: loao
+
+# Select model to train
+# one of: cnn / dnn / snn / rf
+model:
+  type: cnn        # change to dnn/snn/rf depending on run
+
+  # Final hyperparameters based on grid search
+  params:
+
+    # ------------------ CNN ------------------
+    lr:          1e-5
+    patch_size:  7
+    conv_layers: 4
+    filters:     256
+    l2_conv:     1e-4
+    l2_dense:    1e-4
+    dropout:     0.5
+    kernel_size: 3
+
+    # ------------------ DNN ------------------
+    # lr:       1e-4
+    # layers:   3
+    # units:    256
+    # dropout:  0.25
+    # l2_dense: 1e-4
+
+    # ------------------ SNN ------------------
+    # lr:       1e-3
+    # units:    128
+    # l2_dense: 1e-2
+
+    # ------------------ RF ------------------
+    # n_estimators:      2000
+    # max_depth:         20
+    # min_samples_split: 5
+    # min_samples_leaf:  2
+    # max_features:      log2
+
+  # Training config for neural networks
+  epochs: 50
+  batch_size: 2048
+  patience: 5      

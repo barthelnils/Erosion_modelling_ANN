@@ -1,0 +1,93 @@
+
+# Grid search config (LOAO + KFold)
+
+# Directory paths
+
+data_dir: data/               
+output_dir: grid_search_results/    
+
+study_areas:
+  folder_mode: false
+  list:
+    - Adenstedt
+    - Barum
+    - Brueggen
+    - Kleinilde
+    - Kueingdorf
+    - Lamspringe
+    - Nette
+
+bands:
+  - B03_DEM1_res_5m
+  - B04_Slope
+  - B05_Aspect_360
+  - B06_Aspect_180
+  - B07_PlanCurv
+  - B08_ProfileCurv
+  - B09_FlowLineCurv
+  - B10_DCI
+  - B11_DCI10
+  - B12_FA_fields
+  - B13_SL_fields
+  - B14_LS_factor_fields
+  - B15_TPI
+  - B16_WI
+  - B17_K_factor
+  - B18_R_factor
+  - B19_C_factor
+  - B20_MD
+  - B21_MD_vs_Aspect
+
+
+# GRID SEARCH MODE
+
+validation:
+  type: loao      
+
+
+
+# MODEL TYPE (cnn, dnn, snn, rf)
+model_type: cnn
+
+# HYPERPARAMETER GRID
+# Each model defines its own parameter sub-structure.
+param_grid:
+
+  # CNN GRID (patch-based CNN)
+  cnn:
+    lr:          [1e-3, 1e-4, 1e-5]
+    patch_size:  [5, 7, 9]
+    conv_layers: [2, 3, 4]
+    filters:     [64, 128, 256]
+    l2_conv:     [1e-2, 1e-3, 1e-4]
+    l2_dense:    [1e-3, 1e-4, 1e-5]
+    dropout:     [0.0, 0.25, 0.5]
+    kernel_size: [3, 5]
+
+  # DNN GRID
+  dnn:
+    lr:          [1e-3, 1e-4, 1e-5]
+    layers:      [2, 3, 4, 5]
+    units:       [64, 128, 256, 512]
+    dropout:     [0.0, 0.25, 0.5]
+    l2_dense:    [1e-2, 1e-3, 1e-4, 1e-5]
+
+  # SNN GRID
+  snn:
+    lr:        [1e-3, 1e-4, 1e-5]
+    units:     [64, 128, 256, 512]
+    l2_dense:  [1e-2, 1e-3, 1e-4, 1e-5]
+
+  # RANDOM FOREST GRID
+  rf:
+    n_estimators:      [200, 400, 600, 1000]
+    max_depth:         [5, 10, 20, null]
+    min_samples_split: [2, 5, 10]
+    min_samples_leaf:  [1, 2, 4]
+    max_features:      ["sqrt", "log2", null]
+
+
+# JOB CONTROL (SLURM or local
+slurm:
+  enabled: true      # if false -> run whole grid locally
+  array_id_env: SLURM_ARRAY_TASK_ID
