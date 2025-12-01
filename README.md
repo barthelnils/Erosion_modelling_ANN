@@ -1,4 +1,4 @@
-# Soil Erosion Modelling – LOAO Machine Learning Framework
+# Soil Erosion Modelling – LOAO
 
 This repository provides a fully reproducible workflow for modelling soil erosion using four machine-learning approaches:
 
