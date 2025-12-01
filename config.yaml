@@ -1,12 +1,17 @@
+#   config.yaml 
+# Soil Erosion Modelling – LOAO Final Model Configuration
 
-# Main modeling config 
 
-# Directory paths
+# Data and I/O
+# ------------------------------------------------------------
+data_dir: data/                      # Folder containing <area>.tif files
+output_dir: output/Final_Model/      # Where model + scaler + predictions go
 
-data_dir: data/
-output_dir: output/
-
+# ------------------------------------------------------------
+# Study Areas
+# Use either folder_mode OR the explicit list
 study_areas:
+  folder_mode: false
   list:
     - Adenstedt
     - Barum
@@ -16,6 +21,9 @@ study_areas:
     - Lamspringe
     - Nette
 
+
+# Bands to load from each .tif file
+# Must match the layer descriptions inside the GeoTIFFs
 bands:
   - B03_DEM1_res_5m
   - B04_Slope
@@ -38,48 +46,49 @@ bands:
   - B21_MD_vs_Aspect
 
 
-# Validation 
-validation:
-  type: loao
+# Model selection
+model_type: cnn
 
-# Select model to train
-# one of: cnn / dnn / snn / rf
-model:
-  type: cnn        # change to dnn/snn/rf depending on run
+# Final hyperparameters selected by grid search
 
-  # Final hyperparameters based on grid search
-  params:
+# --------------- CNN ---------------
+cnn:
+  lr: 1e-5
+  patch_size: 7
+  conv_layers: 4
+  filters: 256
+  l2_conv: 1e-4
+  l2_dense: 1e-4
+  dropout: 0.5
+  kernel_size: 3  
 
-    # ------------------ CNN ------------------
-    lr:          1e-5
-    patch_size:  7
-    conv_layers: 4
-    filters:     256
-    l2_conv:     1e-4
-    l2_dense:    1e-4
-    dropout:     0.5
-    kernel_size: 3
+# --------------- DNN ---------------
+dnn:
+  lr: 1e-4
+  layers: 3
+  units: 256
+  dropout: 0.25
+  l2_dense: 1e-4
 
-    # ------------------ DNN ------------------
-    # lr:       1e-4
-    # layers:   3
-    # units:    256
-    # dropout:  0.25
-    # l2_dense: 1e-4
+# --------------- SNN ---------------
+snn:
+  lr: 1e-3
+  units: 128
+  l2_dense: 1e-2
 
-    # ------------------ SNN ------------------
-    # lr:       1e-3
-    # units:    128
-    # l2_dense: 1e-2
+# --------------- Random Forest ---------------
+rf:
+  n_estimators: 200
+  max_depth: 20
+  min_samples_split: 5
+  min_samples_leaf: 2
+  max_features: "log2"
 
-    # ------------------ RF ------------------
-    # n_estimators:      2000
-    # max_depth:         20
-    # min_samples_split: 5
-    # min_samples_leaf:  2
-    # max_features:      log2
+# ------------------------------------------------------------
+# Neural network training settings
+nn_training:
+  batch_size: 512
+  epochs: 80
+  patience: 8
+  seed: 42
 
-  # Training config for neural networks
-  epochs: 50
-  batch_size: 2048
-  patience: 5      
