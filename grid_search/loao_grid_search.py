@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: ascii -*-
-
 """
 LOAO grid search pipeline for soil erosion modelling.
 ally.
@@ -44,9 +41,8 @@ import yaml
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-# ----------------------------------------------------------------------
 # Utility: config + param grid
-# ----------------------------------------------------------------------
+
 
 def load_config(path):
     with open(path, "r") as f:
