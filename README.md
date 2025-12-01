@@ -118,9 +118,6 @@ models:
     max_features: log2
 
 bands:
-  - B03_DEM1_res_5m
-  - B04_Slope
-  - B05_Aspect_360
   - ...
 ```
 
