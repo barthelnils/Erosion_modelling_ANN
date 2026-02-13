@@ -37,14 +37,18 @@ bands:
   - B19_C_factor
   - B20_MD
   - B21_MD_vs_Aspect
+  
+# Fixed settings for NN tuning
+nn_training:
+  batch_size: 1028     
+  epochs: 80
+  patience: 8
+  shuffle_buf: 10000
 
+# Max. number of configs sampled without replacement (random search). If number of possible configs is below (SNN) all configs are tested
+n_random: 80
 
-# GRID SEARCH MODE
-
-validation:
-  type: loao      
-
-
+seed: 42
 
 # MODEL TYPE (cnn, dnn, snn, rf)
 model_type: cnn
