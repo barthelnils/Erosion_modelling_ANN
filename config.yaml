@@ -49,6 +49,11 @@ bands:
 # Model selection
 model_type: cnn
 
+training:
+  batch_size: 1028
+  fixed_epochs: 50 
+  seed: 42
+  
 # Final hyperparameters selected by grid search
 
 # --------------- CNN ---------------
@@ -57,10 +62,10 @@ cnn:
   patch_size: 7
   conv_layers: 4
   filters: 256
-  l2_conv: 1e-4
-  l2_dense: 1e-4
-  dropout: 0.5
-  kernel_size: 3  
+  l2_conv: 1e-2
+  l2_dense: 1e-5
+  dropout: 0.0
+  kernel_size: 5  
 
 # --------------- DNN ---------------
 dnn:
@@ -68,27 +73,27 @@ dnn:
   layers: 3
   units: 256
   dropout: 0.25
-  l2_dense: 1e-4
+  l2_dense: 1e-3
 
 # --------------- SNN ---------------
 snn:
   lr: 1e-3
-  units: 128
-  l2_dense: 1e-2
+  units: 512
+  l2_dense: 1e-3
 
 # --------------- Random Forest ---------------
 rf:
-  n_estimators: 200
+  n_estimators: 400
   max_depth: 20
-  min_samples_split: 5
-  min_samples_leaf: 2
+  min_samples_split: 2
+  min_samples_leaf: 1
   max_features: "log2"
 
 # ------------------------------------------------------------
 # Neural network training settings
 nn_training:
-  batch_size: 512
-  epochs: 80
+  batch_size: 1028
+  epochs: 50
   patience: 8
   seed: 42
 
