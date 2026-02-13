@@ -5,7 +5,7 @@
 Final LOAO training script.
 
 - Uses Leave-One-Area-Out (LOAO) validation
-- Hyperparameters are taken from config.yaml 
+- Hyperparameters are taken from config.yaml
 - Saves one model + scaler per held-out area
 - Writes per-fold metrics and overall mean metrics to CSV
 """
@@ -15,11 +15,8 @@ import yaml
 import pickle
 import numpy as np
 import pandas as pd
-
 import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.preprocessing import StandardScaler
-
 from modules.io_utils import read_study_area_data
 from modules.patches import (
     expand_fields_individually,
@@ -76,8 +73,9 @@ def main(config_path: str = "config.yaml"):
     train_cfg  = cfg.get("training", {})
 
     batch_size = train_cfg.get("batch_size", 512)
-    epochs     = train_cfg.get("epochs", 50)
-    patience   = train_cfg.get("patience", 6)
+    epochs     = train_cfg.get("epochs", 50)    # kept for backward compat (RF/old runs)
+    patience   = train_cfg.get("patience", 6)   # kept for backward compat (RF/old runs)
+    fixed_epochs = train_cfg.get("fixed_epochs", None)  # <-- NEW (needed)
     seed       = train_cfg.get("seed", 42)
 
     # Reproducibility
@@ -85,10 +83,18 @@ def main(config_path: str = "config.yaml"):
     tf.random.set_seed(seed)
     os.environ["TF_DETERMINISTIC_OPS"] = "1"
 
+    # Minimal guard: fixed epochs required for NN/CNN
+    if model_type in ["cnn", "dnn", "snn"]:
+        if fixed_epochs is None:
+            raise ValueError("training.fixed_epochs must be set for cnn/dnn/snn (fixed-epoch outer training).")
+        fixed_epochs = int(fixed_epochs)
+
     print("\n======================================")
     print(" Final LOAO training")
     print(" Model type:", model_type)
     print(" Areas:", areas)
+    if model_type in ["cnn", "dnn", "snn"]:
+        print(" Fixed epochs:", fixed_epochs)
     print("======================================\n")
 
     # Output subfolders
@@ -161,7 +167,7 @@ def main(config_path: str = "config.yaml"):
 
             print("  Training patches:", Xtr.shape[0])
 
-            # Validation data (expanded)
+            # Validation data (expanded) [kept; used ONLY for evaluation]
             d_val_exp = expand_fields_individually(info[held_out], extra_expand)
             if not np.any(d_val_exp["mask"]):
                 print(f"No valid mask in expanded validation for {held_out}, skipping.")
@@ -181,7 +187,6 @@ def main(config_path: str = "config.yaml"):
 
             # Prepare datasets (log1p target)
             ytr_log = np.log1p(ytr)
-            yv_log  = np.log1p(yv)
 
             ds_tr = (
                 tf.data.Dataset
@@ -190,33 +195,19 @@ def main(config_path: str = "config.yaml"):
                 .batch(batch_size)
                 .prefetch(tf.data.AUTOTUNE)
             )
-            ds_va = (
-                tf.data.Dataset
-                .from_tensor_slices((Xv, yv_log))
-                .batch(batch_size)
-                .prefetch(tf.data.AUTOTUNE)
-            )
 
-            # Build & train CNN
+            # Build & train CNN (CHANGED: fixed epochs, no EarlyStopping, no validation_data)
             model = build_cnn(
                 input_shape=(patch_size, patch_size, len(bands)),
                 p=params
             )
-            es = EarlyStopping(
-                monitor="val_loss",
-                patience=patience,
-                restore_best_weights=True
-            )
-
             model.fit(
                 ds_tr,
-                validation_data=ds_va,
-                epochs=epochs,
-                callbacks=[es],
+                epochs=fixed_epochs,
                 verbose=0
             )
 
-            # Predict on validation patches
+            # Predict on held-out patches (evaluation)
             y_pred_log = model.predict(Xv, verbose=0).flatten()
             y_pred = np.expm1(y_pred_log)
             y_pred = np.nan_to_num(y_pred)
@@ -264,7 +255,7 @@ def main(config_path: str = "config.yaml"):
             Xtr = np.vstack(Xtr_list)
             ytr = np.concatenate(ytr_list)
 
-            # Validation arrays
+            # Validation arrays (held-out; used ONLY for evaluation)
             d_val = info[held_out]
             m_val = d_val["mask"]
             Xv = scaler.transform(d_val["data"][m_val])
@@ -290,12 +281,6 @@ def main(config_path: str = "config.yaml"):
                 else:
                     raise ValueError(f"Unknown model_type: {model_type}")
 
-                es = EarlyStopping(
-                    monitor="val_loss",
-                    patience=patience,
-                    restore_best_weights=True
-                )
-
                 ds_tr = (
                     tf.data.Dataset
                     .from_tensor_slices((Xtr, ytr_log))
@@ -303,18 +288,11 @@ def main(config_path: str = "config.yaml"):
                     .batch(batch_size)
                     .prefetch(tf.data.AUTOTUNE)
                 )
-                ds_va = (
-                    tf.data.Dataset
-                    .from_tensor_slices((Xv, np.log1p(yv)))
-                    .batch(batch_size)
-                    .prefetch(tf.data.AUTOTUNE)
-                )
 
+                # CHANGED: fixed epochs, no EarlyStopping, no validation_data
                 model.fit(
                     ds_tr,
-                    validation_data=ds_va,
-                    epochs=epochs,
-                    callbacks=[es],
+                    epochs=fixed_epochs,
                     verbose=0
                 )
 
